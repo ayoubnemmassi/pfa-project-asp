@@ -16,12 +16,14 @@ namespace WebApplication4.Models
         }
 
         public virtual DbSet<Admin> Admin { get; set; }
+        public virtual DbSet<Fichiers> Fichiers { get; set; }
         public virtual DbSet<Filiere> Filiere { get; set; }
         public virtual DbSet<Presence> Presence { get; set; }
         public virtual DbSet<Professor> Professor { get; set; }
         public virtual DbSet<Room> Room { get; set; }
         public virtual DbSet<Session> Session { get; set; }
         public virtual DbSet<StudentTable> StudentTable { get; set; }
+        public virtual DbSet<Users> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -85,6 +87,28 @@ namespace WebApplication4.Models
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('admin')");
+            });
+
+            modelBuilder.Entity<Fichiers>(entity =>
+            {
+                entity.ToTable("fichiers");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Nom)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NomFichier)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                   .IsUnicode(false);
             });
 
             modelBuilder.Entity<Filiere>(entity =>
@@ -308,6 +332,15 @@ namespace WebApplication4.Models
                     .HasMaxLength(50)
                     .IsUnicode(false)
                     .HasDefaultValueSql("('student')");
+            });
+
+            modelBuilder.Entity<Users>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.Address).IsRequired();
+
+                entity.Property(e => e.Name).IsRequired();
             });
 
             OnModelCreatingPartial(modelBuilder);

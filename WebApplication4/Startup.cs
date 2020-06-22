@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebApplication4.Hubs;
 
+using Microsoft.AspNetCore.Mvc;
 namespace WebApplication4
 {
     public class Startup
@@ -22,7 +23,8 @@ namespace WebApplication4
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers().AddNewtonsoftJson(); 
+            
             services.AddDbContext<WebApplication4.Models.StudentContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("DBConnectionString")));
             services.AddCors(option => option.AddPolicy("CorsPolicy", builder => { builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader().AllowCredentials(); }));

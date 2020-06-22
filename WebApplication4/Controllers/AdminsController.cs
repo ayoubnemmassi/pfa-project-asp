@@ -100,7 +100,13 @@ namespace WebApplication4.Controllers
                     user.LastName,
                     user.Mail,
                     user.Type,  
-                    user.Image
+                    user.Image,
+                    user.Password,
+                    user.Phonenumber,
+                    user.Address,
+                    
+                    
+                    
                 }); ;
             }
             else

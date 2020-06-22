@@ -26,7 +26,7 @@ namespace WebApplication4.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Presence>>> GetPresence()
         {
-            return await _context.Presence.ToListAsync();
+            return await _context.Presence.FromSqlInterpolated($"SELECT * FROM dbo.presence order by seance_id,date").ToListAsync();
         }
 
         // GET: api/Presences/5
