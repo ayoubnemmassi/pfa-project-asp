@@ -25,9 +25,15 @@ namespace WebApplication4.Controllers
 
         // GET: api/Sessions
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Models.Session>>> GetSession()
+        public async Task<object> GetSession()
         {
-            return await _context.Session.ToListAsync();
+            return await (from s in _context.Session
+                          join f in _context.Filiere on s.FiliereId equals f.FiliereId
+                          join p in _context.Professor on s.Profid equals p.Profid
+                          select new { s.SeanceId, s.Name, p.FirstName, nom = f.Name, s.State,s.Profid,s.FiliereId,
+                          }
+
+                          ).ToListAsync();
         }
 
         // GET: api/Sessions/5

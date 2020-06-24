@@ -9,6 +9,11 @@ using Microsoft.Extensions.Hosting;
 using WebApplication4.Hubs;
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Features;
+using System.IO;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Http;
+
 namespace WebApplication4
 {
     public class Startup
@@ -36,6 +41,11 @@ namespace WebApplication4
                 x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
             });
             services.AddSignalR();
+            services.Configure<FormOptions>(o => {
+                o.ValueLengthLimit = int.MaxValue;
+                o.MultipartBodyLengthLimit = int.MaxValue;
+                o.MemoryBufferThreshold = int.MaxValue;
+            });
 
         }
 
@@ -51,7 +61,12 @@ namespace WebApplication4
 
             app.UseRouting();
             app.UseCors("CorsPolicy");
-
+            app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), @"Resources")),
+                RequestPath = new PathString("/Resources")
+            });
             app.UseAuthorization();
 
             
@@ -71,6 +86,7 @@ namespace WebApplication4
                 options.MapHub<ChatHub>("/ChatHub");
             });
          
+
 
         }
     }

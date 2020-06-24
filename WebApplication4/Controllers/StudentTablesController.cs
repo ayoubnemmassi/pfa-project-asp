@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ using WebApplication4.Models;
 namespace WebApplication4.Controllers
 {
     [Route("api/[controller]")]
+    [EnableCors("CorsPolicy")]
     [ApiController]
     public class StudentTablesController : ControllerBase
     {
@@ -44,19 +46,21 @@ namespace WebApplication4.Controllers
                 return NotFound();
             }
 
-            return studentTable;
+            return studentTable; 
         }
 
-        [HttpGet("{id}/{id2}")]
-        public async Task<ActionResult<IEnumerable<StudentTable>>> GetStudentTable(int id, string id2)
+        [HttpGet]
+        [Route("Friendliste/{id}")]
+        public async Task<ActionResult<IEnumerable<StudentTable>>> Getfriends(int id)
         {
             return await _context.StudentTable.FromSqlInterpolated($"SELECT * FROM dbo.student_table").Where(res => res.StudentId != id).ToListAsync();
 
         }
-        [HttpGet("{name}")]
-        [Route("friend")]
-        public async Task<ActionResult<IEnumerable<StudentTable>>> GetStudentTable(string name)
+        [HttpGet]
+        [Route("Friend/{name}")]
+        public async Task<ActionResult<IEnumerable<StudentTable>>> Getsearched(string name)
         {
+
             return await _context.StudentTable.FromSqlInterpolated($"SELECT * FROM dbo.student_table").Where(res => res.LastName == name).ToListAsync();
 
         }
@@ -111,9 +115,9 @@ namespace WebApplication4.Controllers
             var authorFromDB = await _context.StudentTable.FirstOrDefaultAsync(x => x.StudentId == id);
             var message = new MimeMessage();
             message.To.Add(new MailboxAddress(authorFromDB.LastName + " " + authorFromDB.FirstName, authorFromDB.Mail));
-            message.From.Add(new MailboxAddress("intelligent classes", "ayoub.nemmassi@gmail.com"));
+            message.From.Add(new MailboxAddress("intelligent classes", "intelligent.classes101@gmail.com"));
             message.Subject = "Approuvé";
-            emailBody = "<h1> hello <a href='http://localhost:4200/' > ici</a></h1>";
+            emailBody = "<h1>Salut " + authorFromDB.FirstName+" </h1><p>Intelligent Classes vous informe que votre demande d'inscription a été bien validé ,veuillez comfirmer votre demande <a class='btn btn-success' href='http://localhost:4200/' > ici</a> </p>";
             message.Body = new TextPart(TextFormat.Html)
             {
                 Text = emailBody
@@ -136,7 +140,7 @@ namespace WebApplication4.Controllers
             } using (var emailClient = new SmtpClient())
             {
                 emailClient.Connect("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
-                emailClient.Authenticate("ayoub.nemmassi@gmail.com", "yugigx1998");
+                emailClient.Authenticate("intelligent.classes101@gmail.com", "yugigx1998");
                 emailClient.Send(message);
                 emailClient.Disconnect(true);
             }

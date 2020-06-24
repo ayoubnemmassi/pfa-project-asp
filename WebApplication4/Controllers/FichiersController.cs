@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -22,82 +20,90 @@ namespace WebApplication4.Controllers
             _context = context;
         }
 
+        // GET: api/Fichiers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Fichiers>>> GetFichiers()
         {
             return await _context.Fichiers.ToListAsync();
         }
 
-        [HttpPost("{id}"), DisableRequestSizeLimit]
-        public IActionResult Upload(int id)
+        // GET: api/Fichiers/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Fichiers>> GetFichiers(int id)
         {
+            var fichiers = await _context.Fichiers.FindAsync(id);
+
+            if (fichiers == null)
+            {
+                return NotFound();
+            }
+
+            return fichiers;
+        }
+
+        // PUT: api/Fichiers/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutFichiers(int id, Fichiers fichiers)
+        {
+            if (id != fichiers.Id)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(fichiers).State = EntityState.Modified;
+
             try
             {
-                var file = Request.Form.Files[0];
-                var folderName = Path.Combine("Resources", "Images");
-                var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-
-
-
-                if (file.Length > 0)
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!FichiersExists(id))
                 {
-                    var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                    var fullPath = Path.Combine(pathToSave, fileName);
-                    var dbPath = Path.Combine(folderName, fileName);
-
-
-
-                    using (var stream = new FileStream(fullPath, FileMode.Create))
-                    {
-                        file.CopyTo(stream);
-                    }
-                    var user = _context.StudentTable.FromSqlInterpolated($"SELECT * FROM dbo.student_table").Where(res => res.StudentId == id).FirstOrDefault();
-                    var fichier = new Fichiers();
-                    fichier.Nom = user.FirstName;
-                    fichier.Status = user.Type;
-                    fichier.NomFichier = fileName;
-                    _context.Fichiers.Add(fichier);
-                    _context.SaveChangesAsync();
-                    return Ok(new { dbPath });
+                    return NotFound();
                 }
                 else
                 {
-                    return BadRequest();
+                    throw;
                 }
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex}");
-            }
+
+            return NoContent();
         }
-        [HttpGet("{id}")]
-        [Route("Download/{id}")]
-        public async Task<ActionResult> Download(int id)
+
+        // POST: api/Fichiers
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Fichiers>> PostFichiers(Fichiers fichiers)
         {
-            var f = _context.Fichiers.FromSqlInterpolated($"SELECT * FROM dbo.Fichiers").Where(res => res.Id == id).FirstOrDefault();
-            var path = @"C:\Users\MSI\source\repos\WebApplication4\WebApplication4\Resources\Images\" + f.NomFichier;
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(path, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-            var ext = Path.GetExtension(path).ToLowerInvariant();
-            return File(memory, GetMimeTypes()[ext], Path.GetFileName(path));
+            _context.Fichiers.Add(fichiers);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetFichiers", new { id = fichiers.Id }, fichiers);
         }
-        private Dictionary<string, string> GetMimeTypes()
+
+        // DELETE: api/Fichiers/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Fichiers>> DeleteFichiers(int id)
         {
-            return new Dictionary<string, string>
+            var fichiers = await _context.Fichiers.FindAsync(id);
+            if (fichiers == null)
             {
-                {".txt","text/plain" },
-                {".pdf","application/pdf" },
-                {".doc","application/vnd.ms-word" },
-                {".docx","application/vnd.ms-word" },
-                {".xls","application/vnd.ms-excel" },
-                { ".png","image/png" },
-                {".jpg","image/jpg" },
-                {".jpeg","image/jpeg" },
-            };
+                return NotFound();
+            }
+
+            _context.Fichiers.Remove(fichiers);
+            await _context.SaveChangesAsync();
+
+            return fichiers;
+        }
+
+        private bool FichiersExists(int id)
+        {
+            return _context.Fichiers.Any(e => e.Id == id);
         }
     }
 }
